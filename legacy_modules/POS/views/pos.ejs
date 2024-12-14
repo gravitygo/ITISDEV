@@ -1,0 +1,319 @@
+<html>
+<head>
+    <title>Point of Sale</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background-color: #f2f2f2;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        #pos {
+            display: flex;
+        }
+        
+        #left-container {
+            flex: 70%;
+            padding-right: 20px;
+        }
+        
+        #right-container {
+            flex: 30%;
+            padding-left: 20px;
+        }
+        
+        .table-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table-container th,
+        .table-container td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid rgb(129, 167, 189);
+        }
+        
+        .table-container th {
+            text-align: center;
+            background-color: #a8ddfc;
+        }
+        
+        #cart-table-container {
+            height: 400px;
+            overflow: auto;
+            background-color: #f5f5f5;
+        }
+
+        #product{
+            width:50%;
+        }
+
+        #quantity{
+            width:25%;
+        }
+
+        #price{
+            width: 25%;
+        }
+        
+        #checkout-button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            height: 50px;   
+        }
+        #menu-table td {
+        width: 20%;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // variables from DB
+            var menuingredients = JSON.parse(document.getElementById('menuingredients').textContent);
+            var ingredients     = JSON.parse(document.getElementById('ingredients').textContent); // temporary values
+            var ingredientunits = JSON.parse(document.getElementById('ingredientunits').textContent);
+            var ingredientsUsed = [];
+
+            // event listener for menu table cells
+            $('#menu-table td').click(function() {
+                // variables for each item
+                var itemName        = $(this).find('#product-name').text().trim();
+                var itemPrice       = $(this).find('#product-price').text().trim().substring(1);
+                var itemID          = $(this).find('#product-id').text().trim();
+                var itemIngredients = [];
+                var valid           = 1;
+                
+                // searches ingredients for item
+                for (i = 0; i < menuingredients.menuid.length; i++) { // accounts for all ingredients used
+                    if (itemID == menuingredients.menuid[i]) {
+                        itemIngredients.push({
+                            ingredientid: menuingredients.ingredientid[i],
+                            unitid:       menuingredients.unitid[i],
+                            amount:       menuingredients.amount[i]
+                        });
+                    }
+                }
+                
+                for (i = 0; i < itemIngredients.length; i++) { // checks all ingredients used
+                    for (j = 0; j < ingredientunits.ingredientunitid.length; j++) { // searches for the correct conversion/multiplier for ingredients
+                        if (itemIngredients[i].ingredientid == ingredientunits.ingredientid[j] && itemIngredients[i].unitid == ingredientunits.unitid[j]) {
+                            var consumed = itemIngredients[i].amount * ingredientunits.multiplier[j]; // consumed ingredients of the dish
+                            for (k = 0; k < ingredients.ingredientid.length; k++) {
+                                if (itemIngredients[i].ingredientid == ingredients.ingredientid[k]) {
+                                    if (ingredients.amount[k] - consumed < 0) // checks 
+                                    {
+                                        valid = 0;
+                                        alert('insufficient ' + ingredients.name[k]);
+                                        break;
+                                    } 
+                                    else if (valid == 1){
+                                        ingredients.amount[k] -= consumed; // updates ingredients
+
+                                        // searches for an existing row so that there will be less update queries
+                                        var temp = -1; 
+                                        for (l = 0; l < ingredientsUsed.length; l++) {
+                                            if (ingredientsUsed[l].ingredientid == ingredients.ingredientid[k]) {
+                                                temp = l;
+                                            }
+                                        }
+
+                                        if (temp != -1) { // row exists
+                                            ingredientsUsed[temp].amount = ingredients.amount[k];
+                                            break;
+                                        }
+                                        else { // creates new row
+                                            ingredientsUsed.push({
+                                                menuid:         itemID,
+                                                ingredientid:   ingredients.ingredientid[k],
+                                                amount:         ingredients.amount[k]
+                                            });
+                                            break;
+                                        }                                        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                console.log(ingredientsUsed);
+                if (valid == 1) {
+                // Check if the item already exists in the cart
+                var existingCartItem = $('#cart-table td:contains("' + itemName + '")');
+                if (existingCartItem.length > 0) {
+                    var quantity = parseInt(existingCartItem.closest('tr').find('#c-quantity').text().trim()) + 1;
+                    existingCartItem.closest('tr').find('#c-quantity').text(quantity);
+
+                    var price = parseFloat(existingCartItem.closest('tr').find('#c-quantity').text().trim()) * parseFloat(itemPrice);
+                    existingCartItem.closest('tr').find('#c-price').text('₱'+price);
+
+                } else {
+                    var cartRow = $('<tr><td><p id="c-product">' + itemName + '</p><p id="c-product-id" style="display: none;">' + itemID + '</p></td><td><p id="c-quantity">1</p></td><td><p id="c-price">₱' + itemPrice + '</p></td></tr>');
+                    $('#cart-table').append(cartRow);
+                }
+                }
+                else if (valid == 0){
+                    console.log('invalid input');
+                }
+                
+            });
+
+            $(document).on('click', '#cart-table #c-product', function() {
+                var row = $(this).closest('tr');
+                var quantityCell = row.find('#c-quantity');
+                var quantity = parseInt(quantityCell.text().trim());
+                var itemIngredients = [];
+
+                var itemID = row.find('#c-product-id').text().trim();
+                for (i = 0; i < menuingredients.menuid.length; i++) {
+                    if (itemID == menuingredients.menuid[i]) {
+                        itemIngredients.push({
+                            ingredientid:   menuingredients.ingredientid[i],
+                            unitid:         menuingredients.unitid[i],
+                            amount:         menuingredients.amount[i]
+                        });
+                    }
+                }
+
+                for (i = 0; i < itemIngredients.length; i++) { // checks all ingredients used
+                    for (j = 0; j < ingredientunits.ingredientunitid.length; j++) { // searches for the correct conversion/multiplier for ingredients
+                        if (itemIngredients[i].ingredientid == ingredientunits.ingredientid[j] && itemIngredients[i].unitid == ingredientunits.unitid[j]) {
+                            var consumed = itemIngredients[i].amount * ingredientunits.multiplier[j]; // consumed ingredients of the dish
+                            for (k = 0; k < ingredients.amount.length; k++) { // checks main ingredients table
+                                if (itemIngredients[i].ingredientid == ingredients.ingredientid[k]) {
+                                    ingredients.amount[k] += consumed
+                                }
+                            }
+                            for (k = 0; k < ingredientsUsed.length; k++) { // checks ingredients used table
+                                if (itemIngredients[i].ingredientid == ingredientsUsed[k].ingredientid) {
+                                    ingredientsUsed[k].amount += consumed;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (quantity > 1) {
+                    quantityCell.text(quantity - 1);
+                } 
+                else {
+                    row.remove();
+                    for (i = 0; i < ingredientsUsed.length; i++) { // removes unchanged rows 
+                        if (ingredientsUsed[i].menuid == itemID) {
+                            ingredientsUsed.splice(i, 1);
+                            i--;
+                        }
+                    }
+                }
+            });
+
+            // event listener for checkout button
+            $(document).on('click', '#checkout-button', function(e) {
+                e.preventDefault();
+                // Retrieve values from cart table
+                var itemNames   = [];
+                var quantities  = [];
+                var prices      = [];
+                var itemIDs      = [];
+                
+                $('#cart-table tr').slice(2).each(function() {
+                    var itemName = $(this).find('#c-product').text().trim();
+                    var quantity = $(this).find('#c-quantity').text().trim();
+                    var price    = $(this).find('#c-price').text().trim().substring(1);
+                    var itemID   = $(this).find('#c-product-id').text().trim();
+
+                    itemNames.push(itemName);
+                    quantities.push(quantity);
+                    prices.push(price);
+                    itemIDs.push(itemID);
+                });
+                
+                // stringify data to pass through form
+                var form = $('#checkout-form');
+                var itemNamesJSON  = JSON.stringify(itemNames);
+                var quantitiesJSON = JSON.stringify(quantities);
+                var priceJSON      = JSON.stringify(prices);
+                var itemIDs        = JSON.stringify(itemIDs);
+                var inUsedJSON     = JSON.stringify(ingredientsUsed);
+
+                // input hidden data
+                form.append('<input type="hidden" name="itemNames" value=\'' + itemNamesJSON + '\'>');
+                form.append('<input type="hidden" name="quantities" value=\'' + quantitiesJSON + '\'>');
+                form.append('<input type="hidden" name="prices" value=\'' + priceJSON + '\'>');
+                form.append('<input type="hidden" name="itemIDs" value=\'' + itemIDs + '\'>');
+                form.append('<input type="hidden" name="ingredientsUsed" value=\'' + inUsedJSON + '\'>');
+                form.submit();
+            });
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Point of Sale</h1>
+        <p id="menuingredients" style="display: none;"><%= JSON.stringify(data.menuingredients) %></p>
+        <p id="ingredients" style="display: none;"><%= JSON.stringify(data.ingredients) %></p>
+        <p id="ingredientunits" style="display: none;"><%= JSON.stringify(data.ingredientunits) %></p>
+        <p id="menu" style="display: none;"><%= JSON.stringify(data.product) %></p>
+    </header>
+    <main>
+        <div id="pos">
+            <div id="left-container">
+                <div id="menu-table-container" class="table-container">
+                    <table id="menu-table">
+                        <tr>
+                            <th colspan="5">Menu</th>
+                        </tr>
+                        <% for (let i=0; i < data.product.name.length; i++) {%>
+                            <tr>
+                                <% for (let j=0; j < 5 &&  j+i < data.product.name.length; j++) {%>
+                                    <td>
+                                        <p id="product-name"><%= data.product.name[j+i] %></p>
+                                        <p id="product-price">₱<%= data.product.price[j+i] %></p>
+                                        <p id="product-id" style="display: none;"><%= data.product.id[j+i] %></p>
+                                    </td>
+                                <% } %>
+                                <% i += 4 %>
+                            </tr>
+                        <% } %>
+                    </table>
+                </div>
+            </div>
+            <div id="right-container">
+                <form id="checkout-form" method="post" action="/checkout">
+                    <div id="cart-table-container" class="table-container">
+                        <table id="cart-table">
+                            <tr>
+                                <th colspan="3">Cart</th>
+                            </tr>
+                            <tr>
+                                <th id="product">Product</th>
+                                <th id="quantity">Quantity</th>
+                                <th id="price">Price</th>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="checkout-container">
+                        <button id="checkout-button">Checkout</button>
+                    </div>    
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

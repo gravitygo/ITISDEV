@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+
+	<link rel="stylesheet" type="text/css" href="/styles.css"><!-- CSS -->
+	<!-- Add this script tag to the head or body section of your HTML file -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<script src="https://kit.fontawesome.com/f3347210b3.js" crossorigin="anonymous"></script><!-- JavaScript -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+	<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+
+</head>
+
+<style>
+	.d-flex.space-between.flex-grow-1 {
+		margin-bottom: 15px
+	}
+</style>
+
+<body>
+
+
+	<!-- Add Unit Modal -->
+	<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">Add New Unit</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<form id="new_unit" action="/addUnitDI/<%=Dish[0].dish_id%>" method="post">
+					<div class="modal-body">
+
+
+
+						<h6 id="select-unit">Select Unit</h6>
+						<select name="sub_unit" id="sub-unit" class="form-control input-width" placeholder="Sub Unit">
+							<option value="" disabled selected>Select Sub Unit</option>
+
+
+						</select>
+
+						<h6 id="unit-name-h6">Enter Unit Name</h6><input type="text" name="unit_name" id="unit_name" class="form-control input-width" placeholder="Unit Name" required><br />
+						<h6 id="unit-symbol-h6">Enter Unit Symbol</h6><input type="text" name="unit_symbol" id="unit_symbol" class="form-control input-width" placeholder="Unit Symbol" required><br />
+
+
+						<h6>Enter Unit Multiplier</h6><input type="number" name="unit_multiplier" id="unit_multiplier" class="form-control input-width" placeholder="Unit Multiplier" required>
+
+					</div>
+
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						<button type="submit" class="btn btn-primary">Save changes</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<!-- Verification Modal -->
+	<div class="modal fade" id="verificationmodal" tabindex="-1" role="dialog" aria-labelledby="verificationmodalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="verificationmodalLabel">Notice</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					Are you certain you want to submit these changes for approval by the admin? Once submitted, you will not be able to make further changes until approved
+				</div>
+				<div class="modal-footer">
+					<form action="/save_mIngredients/<%=Dish[0].dish_id%>" method="post">
+						<input type="hidden" id="tempIngredientsData" name="tempIngredientsData">
+						<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+						<button id="confirm_changes" type="submit" class="btn btn-primary">Okay</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="d-flex">
+		<%- include('navbar'); -%>
+		<div class="content d-flex flex-column space-between flex-grow-1">
+			<!-- dish title/header part -->
+			<div class="section header mb-4">
+				<div class="d-flex align-items-center justify-content-between">
+					<div>
+						<h1 id="dish-name"><i class="fa-solid fa-shrimp"></i> <%=Dish[0].dish_name%></h1>
+						<h2 id="dish-price">₱<%=Dish[0].price%></h2>
+					</div>
+					<% if (userrole.toLowerCase() === "admin") { %>
+					<div class="d-flex flex-column">
+						<button type="submit" onclick="location.href='/dish_disable/<%=Dish[0].dish_id%>'" class="btn btn-secondary input-btn-width borderless-button" value="Disable Dish" id="dish-disable">Disable Dish</button>
+					</div>
+					<% } %>
+				</div>
+			</div>
+
+			<!-- add new dish form -->
+			<form class="section header d-flex space-between mb-4 <% if (Dish[0].dish_name !== '') { %>d-none<% } %>" action="/addNameDish/<%=Dish[0].dish_id%>" method="post">
+				<div class="d-flex">
+					<div class="form-floating me-2">
+						<input type="text" name="input1" id="input1" class="form-control input-width" placeholder="Dish Name" required>
+						<label id="input1-name" for="name">Enter Dish Name</label>
+					</div>
+
+					<div class="form-floating">
+						<input type="number" name="input2" id="input2" class="form-control input-width" placeholder="Price" oninput="restrictZero()" required>
+						<label id="input2-name" for="price">Enter Dish Price</label>
+					</div>
+				</div>
+				<button type="submit" class="btn btn-success input-btn" value="Confirm" id="my-button" disabled>Confirm</button>
+			</form>
+
+			<!-- add ingredients of dish form -->
+			<form class="section header d-flex space-between mb-4 <% if (Dish[0].dish_name == '' || mIngredient.length > 0) { %>d-none<% } %>" id="ingredient-form">
+				<div class="d-flex">
+					<div class="form-floating">
+						<select name="ingredient" id="ingredient" class="form-control input-width me-2" placeholder="Ingredient">
+							<option value="" disabled selected>Select Ingredient</option>
+							<% for(var n in Ingredients){  %>
+							<option value="<%=Ingredients[n].ingredient_id%>"><%=Ingredients[n].ingredient_name%></option>
+							<%};%>
+						</select>
+						<label id="ingredient-name" for="ingredient">Select Ingredient</label>
+					</div>
+
+					<div class="form-floating">
+						<select name="unit" id="unit" class="form-control input-width me-2" placeholder="Unit">
+							<option value="" disabled selected>Select Unit</option>
+
+						</select>
+						<label id="unit-name" for="unit">Select Unit</label>
+					</div>
+
+					<div class="form-floating">
+						<input type="number" id="amount" name="amount" class="form-control input-width" placeholder="Quantity" max="100" oninput="restrictZero()">
+						<label id="amount-name" for="amount">Enter Quantity</label>
+					</div>
+
+				</div>
+				<button type="submit" class="btn btn-success input-btn" value="Add Ingredient" id="add-button" disabled>Add Ingredient</button>
+			</form>
+
+			<!-- approval form -->
+
+			<% if (userrole.toLowerCase() === "admin" && Dish[0].status == "Pending") { %>
+			<form class="section header d-flex space-between mb-4" action="/dish_status/<%=Dish[0].dish_id%>" method="post">
+				<div class="d-flex">
+					<div class="form-floating">
+						<select name="input3" id="input3" class="form-control input-width">
+							<option value="" disabled selected>Select Status</option>
+							<option value="Approved">Approved</option>
+							<option value="Rejected">Rejected</option>
+
+						</select>
+						<label id="input3-name" for="input3">Select Status</label>
+					</div>
+				</div>
+				<input type="hidden" name="dish_name_status" id="dish_name_status" value="<%=Dish[0].dish_name%>">
+				<button type="submit" class="btn btn-success input-btn-width" value="Confirm" id="approval-submit" disabled>Confirm</button>
+			</form>
+			<% } %>
+			<!-- ingredients list table -->
+			<div class="d-flex space-between flex-grow-1">
+				<div class="section d-flex flex-column flex-grow-1">
+					<div class="header">
+						<h3>Ingredients List</h3>
+					</div>
+					<div class="d-flex flex-column flex-grow-1 table-container">
+						<table id="myTable" class="table table-striped">
+							<thead>
+								<tr>
+									<th scope="col">Ingredients</th>
+									<th scope="col">Quantity</th>
+									<th scope="col">Unit</th>
+
+								</tr>
+							</thead>
+							<tbody>
+
+
+
+								<% for(var i in mIngredient){  %>
+								<tr>
+									<td><%=mIngredient[i].ingredient_name %></td>
+									<td><%=mIngredient[i].amount %></td>
+									<td><%=mIngredient[i].unit_name %></td>
+									
+								</tr>
+								<%};%>
+
+
+							</tbody>
+						</table>
+					</div>
+
+
+				</div>
+
+			</div>
+
+
+
+			<div class="d-flex justify-content-end">
+				<button type="button" class="btn btn-secondary " id="cancel_btn">Cancel</button>
+				<button type="submit" class="btn btn-primary" id="save_changes" data-toggle="modal" data-target="#verificationmodal">Save changes</button>
+			</div>
+
+
+		</div>
+
+
+	</div>
+
+
+
+	<script>
+		var iUnitsData = JSON.parse('<%- JSON.stringify(iUnits) %>');
+		var mIngredientData = JSON.parse('<%- JSON.stringify(mIngredient) %>');
+		var unitData = JSON.parse('<%- JSON.stringify(unitsAll) %>');
+		var matchingIngredientIds = [];
+
+
+		var tableBody = $('#myTable tbody');
+
+		function D_ingredients(ingredient, unit, amount) {
+			this.ingredient = ingredient;
+			this.unit = unit;
+			this.amount = amount;
+
+		}
+
+		var tempIngredients = [];
+
+
+		for (var i = 0; i < tempIngredients.length; i++) {
+			var ingredient = tempIngredients[i].ingredient;
+			var amount = tempIngredients[i].amount;
+			var unit = tempIngredients[i].unit;
+
+
+			// Create a new table row with the data
+			var newRow = $('<tr>');
+			newRow.append($('<td>').text(ingredient));
+			newRow.append($('<td>').text(amount));
+			newRow.append($('<td>').text(unit));
+
+
+			// Append the new row to the table body
+			tableBody.append(newRow);
+		}
+
+		$(document).ready(function() {
+
+			$('#input3').change(function() {
+				// Get the selected value of the select element
+				const selectedValue = $(this).val();
+
+				// Enable or disable the button based on whether a value is selected
+				if (selectedValue !== '') {
+					$('#approval-submit').prop('disabled', false);
+				} else {
+					$('#approval-submit').prop('disabled', true);
+				}
+			});
+
+
+			$(document).on('click', '#delete-temp', function(event) {
+    event.preventDefault();
+
+    const row = $(this).closest('tr');
+    const index = row.index();
+    const ingredientId = tempIngredients[index].ingredient;
+	const ingredientName = row.find('td:first').text();
+
+    tempIngredients.splice(index, 1);
+
+    row.remove();
+
+    updateHiddenInput();
+
+   
+
+    // Add the ingredient back to the ingredient select options
+    $('#ingredient').append($('<option>', {
+        value: ingredientId,
+        text: ingredientName
+    }));
+});
+
+
+
+			$('#add-button').click(function(event) {
+				event.preventDefault();
+
+				// Get input values from the form
+				const ingredient_name = $('#ingredient option:selected').text();
+				const unit_name = $('#unit option:selected').text();
+				const ingredient = $('#ingredient').val().trim();
+				const unit = $('#unit').val().trim();
+				const amount = $('#amount').val().trim();
+
+
+				// Create a new D_ingredients object and push it to the array
+				tempIngredients.push(new D_ingredients(ingredient, unit, amount));
+
+				$('#myTable tbody').append(`
+					<tr>
+						<td>${ingredient_name}</td>
+						<td>${amount}</td>
+						<td>${unit_name}</td>
+						<td>
+						<button id="delete-temp" class="btn btn-danger input-btn-width borderless-button">Delete</button>
+						</td>
+					
+					</tr>
+					`);
+
+				// Clear form inputs
+				$('#ingredient').val('');
+				$('#unit').val('');
+				$('#amount').val('');
+
+				var unitSelect = $('#unit');
+
+				// Clear previous options
+				unitSelect.empty();
+
+				// Add default option
+				unitSelect.append($('<option>', {
+					value: '',
+					text: 'Select Unit',
+					disabled: true,
+					selected: true
+				}));
+
+				updateHiddenInput();
+
+
+				$('#add-button').prop('disabled', true);
+
+				$('#ingredient option[value="' + ingredient + '"]').remove();
+			});
+
+
+			$('#cancel_btn').click(function(event) {
+				tempIngredients = [];
+				location.reload();
+			});
+
+
+			function updateHiddenInput() {
+				$('#tempIngredientsData').val(JSON.stringify(tempIngredients));
+				toggleSaveButtons();
+			}
+
+
+
+			function toggleSaveButtons() {
+				if (tempIngredients.length === 0) {
+					// If tempIngredients is empty, hide the buttons
+					$('#cancel_btn, #save_changes').hide();
+				} else {
+					// If tempIngredients is not empty, show the buttons
+					$('#cancel_btn, #save_changes').show();
+				}
+			}
+
+			$('#save_changes').click(function(event) {
+				event.preventDefault();
+				$('#verificationmodal').modal('show');
+
+			});
+
+
+			$('#confirm_changes').click(function() {
+
+				updateHiddenInput();
+				tempIngredients = [];
+
+			});
+			toggleSaveButtons();
+
+			checkInputBack();
+
+			$('#ingredient').change(function() {
+				var selectedIngredient = $(this).val(); // Get the selected ingredient value
+				updateUnitOptions(selectedIngredient); // Call the function to update unit options
+			});
+
+			$('#unit').change(function() {
+				matchingIngredientIds = [];
+
+				var selectedUnit = $(this).val(); // Get the selected unit value
+
+				// Check if "Add New Unit" is selected
+				if (selectedUnit === "add_new_unit") {
+
+
+					var count = 0;
+					var selectedIngredient = $('#ingredient').val();
+
+
+
+
+					for (var n in iUnitsData) {
+
+
+						if (selectedIngredient == iUnitsData[n].ingredient_id) {
+							matchingIngredientIds.push(iUnitsData[n].unit_id);
+						}
+					}
+
+
+
+					for (var k in unitData) {
+
+
+						for (var j in matchingIngredientIds) {
+
+
+
+							if (matchingIngredientIds[j] == unitData[k].unit_id) {
+								count++;
+							}
+						}
+					}
+
+
+
+					if (count < unitData.length) {
+
+
+
+						document.getElementById('unit_name').style.display = 'none';
+						document.getElementById('unit_symbol').style.display = 'none';
+
+						$('#unit_name').removeAttr('required');
+						$('#unit_symbol').removeAttr('required');
+
+						document.getElementById('unit-name-h6').style.display = 'none';
+						document.getElementById('unit-symbol-h6').style.display = 'none';
+
+						document.getElementById('select-unit').style.display = 'block';
+						document.getElementById('sub-unit').style.display = 'block';
+					} else {
+
+						$('#unit_name').attr('required', 'required');
+						$('#unit_symbol').attr('required', 'required');
+						document.getElementById('select-unit').style.display = 'none';
+						document.getElementById('sub-unit').style.display = 'none';
+
+						document.getElementById('unit_name').style.display = 'block';
+						document.getElementById('unit_symbol').style.display = 'block';
+
+						document.getElementById('unit-name-h6').style.display = 'block';
+						document.getElementById('unit-symbol-h6').style.display = 'block';
+
+					}
+
+
+					updateNewUnitOptions(selectedIngredient);
+					// Show the modal when "Add New Unit" is selected
+					$('#exampleModal').modal('show');
+					$('#new_unit').append(`<input type="hidden" name="ingredient" value="${selectedIngredient}">`);
+				}
+			});
+
+
+		});
+
+
+
+
+		var checkInput = () => {
+			const dish_name = $("#input1").val().trim();
+			const dish_price = $("#input2").val().trim();
+			$('#my-button').prop('disabled', dish_name === '' || dish_price === '');
+		};
+
+		var checkInputIngredient = () => {
+			const amount = $("#amount").val().trim();
+			const units_value = $("#unit").val().trim();
+			const ingredient_value = $("#ingredient").val().trim();
+			const selectEmpty = units_value === '';
+			const selectEmpty2 = ingredient_value === '';
+
+			$('#add-button').prop('disabled', amount === '' || selectEmpty || selectEmpty2);
+		};
+
+		var checkInputBack = () => {
+			const dish_name = $("#dish-name").text().trim();
+			const inputsVisible = dish_name === ''; // Determine if the inputs should be visible
+
+			$('#input1, #input2, #input1-name, #input2-name').toggle(inputsVisible); // Toggle the visibility of #input1 and #input2 based on inputsVisible
+			$('#my-button').toggle(inputsVisible);
+			$('#add-button, #ingredient, #unit, #amount, #ingredient-name, #unit-name, #amount-name').prop('hidden', dish_name === '' || mIngredientData.length > 0);
+		};
+
+
+
+
+		$(document).on('keyup input', '#dish-name', checkInputBack);
+		$(document).on('keyup input', '#input1, #input2', checkInput);
+		$(document).on('keyup input', '#unit, #amount,#ingredient', checkInputIngredient);
+
+
+		function updateUnitOptions(selectedIngredient) {
+
+			// Define the unit options for each ingredient
+
+
+			// Get the unit select element
+			var unitSelect = $('#unit');
+
+			// Clear previous options
+			unitSelect.empty();
+
+			// Add default option
+			unitSelect.append($('<option>', {
+				value: '',
+				text: 'Select unit',
+				disabled: 'disabled'
+			}));
+
+
+
+
+			// Add options based on the selected ingredient
+
+			for (var n in iUnitsData) {
+
+
+				if (selectedIngredient == iUnitsData[n].ingredient_id)
+
+
+					unitSelect.append($('<option>', {
+						value: iUnitsData[n].unit_id,
+						text: iUnitsData[n].unit_name
+					}));
+			}
+
+			unitSelect.append($('<option>', {
+				value: 'add_new_unit',
+				text: 'Add New Unit'
+			}));
+
+		}
+
+
+		function updateNewUnitOptions(selectedIngredient) {
+
+			// Define the unit options for each ingredient
+
+
+			// Get the unit select element
+			var unitSelect = $('#sub-unit');
+
+			// Clear previous options
+			unitSelect.empty();
+
+			// Add default option
+			unitSelect.append($('<option>', {
+				value: '',
+				text: 'Select unit',
+				disabled: 'disabled'
+			}));
+
+
+
+
+			// Add options based on the selected ingredient
+
+			let appendOption = true;
+
+			// Loop through the unitData array
+			for (var k in unitData) {
+				// Reset the flag for each iteration of the outer loop
+				appendOption = true;
+
+				// Loop through the matchingIngredientIds array
+				for (var j in matchingIngredientIds) {
+					// Check the condition
+					if (matchingIngredientIds[j] === unitData[k].unit_id) {
+						// If the condition is true, set the flag to false and break out of the inner loop
+						appendOption = false;
+						break;
+					}
+				}
+
+				// After the inner loop finishes, check the flag to determine if the option should be appended
+				if (appendOption) {
+					unitSelect.append($('<option>', {
+						value: unitData[k].unit_id,
+						text: unitData[k].unit_name
+					}));
+				}
+			}
+
+
+		}
+
+
+
+
+		// Function to restrict input from using 0 (zero)
+		function restrictZero() {
+			var inputElement = document.getElementById("amount");
+			var inputValue = inputElement.value;
+			if (inputValue === "0") {
+				inputElement.value = "1";
+			}
+
+			var inputElement = document.getElementById("input2");
+			var inputValue = inputElement.value;
+			if (parseFloat(inputValue) === 0) {
+				inputElement.value = "1";
+			}
+		}
+
+
+
+
+		// Get the input field element
+		const inputField = document.getElementById('input1');
+
+		// Function to validate the input and allow only letters
+		const validateInput = (event) => {
+			const input = event.target.value;
+			const onlyLetters = /^[A-Za-z]+$/;
+
+			if (!onlyLetters.test(input)) {
+				event.preventDefault();
+				inputField.setCustomValidity("Please use letters only.");
+			} else {
+				inputField.setCustomValidity("");
+			}
+		};
+
+		// Attach the event listener to the input field
+		inputField.addEventListener('input', validateInput);
+
+
+
+		const isDuplicate = (input, key) => {
+			return unitData.some((unit) => unit[key] === input);
+		};
+
+
+		const validateUnitName = (event) => {
+			const inputField = event.target;
+			const input = inputField.value.trim();
+			const onlyLetters = /^[A-Za-z]+$/;
+			const isNameDuplicate = isDuplicate(input, 'unit_name');
+
+			if (!onlyLetters.test(input)) {
+				event.preventDefault();
+				inputField.setCustomValidity("Please use letters only.");
+			} else if (isNameDuplicate) {
+				event.preventDefault();
+				inputField.setCustomValidity("This unit name already exists. Please enter a different name.");
+			} else {
+				inputField.setCustomValidity("");
+			}
+		};
+
+		const validateUnitSymbol = (event) => {
+			const inputField = event.target;
+			const input = inputField.value.trim();
+			const onlyLetters = /^[A-Za-z]+$/;
+			const isSymbolDuplicate = isDuplicate(input, 'unit_symbol');
+
+			if (!onlyLetters.test(input)) {
+				event.preventDefault();
+				inputField.setCustomValidity("Please use letters only.");
+			} else if (isSymbolDuplicate) {
+				event.preventDefault();
+				inputField.setCustomValidity("This unit symbol already exists. Please enter a symbol.");
+			} else {
+				inputField.setCustomValidity("");
+			}
+		};
+
+
+		const unit_name = $('#unit_name');
+		const unit_symbol = $('#unit_symbol');
+
+
+
+		unit_name.on('input', validateUnitName);
+		unit_symbol.on('input', validateUnitSymbol);
+	</script>
+</body>
+
+</html>

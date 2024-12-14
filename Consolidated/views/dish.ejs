@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+	<title>Dish</title>
+	<link rel="stylesheet" type="text/css" href="/styles.css"><!-- CSS -->
+	<!-- Add this script tag to the head or body section of your HTML file -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<script src="https://kit.fontawesome.com/f3347210b3.js" crossorigin="anonymous"></script><!-- JavaScript -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+	<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+
+	
+</head>
+
+
+<body>
+
+
+	<!-- Verification Modal -->
+	<div class="modal fade" id="verificationmodal" tabindex="-1" role="dialog" aria-labelledby="verificationmodalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="verificationmodalLabel">Notice</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					Are you certain you want to update this dish? 
+				</div>
+				<div class="modal-footer">
+					<form id="updateDishForm" action="" method="get">
+						<input type="hidden" id="tempIngredientsData" name="tempIngredientsData">
+						<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+						<button id="confirm_changes" type="submit" class="btn btn-primary">Okay</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="d-flex">
+		<%- include('navbar'); -%>
+		<div class="content d-flex flex-column flex-grow-1">
+			<div class="section header mb-4">
+				<h1><i class="fa-solid fa-shrimp"></i> Dish</h1>
+			</div>
+
+			<div class="section header d-flex justify-content-end mb-4">
+				<a href="/mIngredientsNew"><button class="btn btn-success input-btn">Add Dish</button></a>
+			</div>
+			<div class="section d-flex flex-column flex-grow-1">
+				<div class="header">
+					<h3><Dish List></h3>
+				</div>
+				<table id="dishlist" class="table table-striped">
+					<thead>
+						<tr>
+							<th scope="col">Dish</th>
+							<th scope="col">Price</th>
+							<th scope="col">Status</th>
+							<th scope="col"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<% for(var i in dish){  %>
+						<tr>
+							<td><%=dish[i].dish_name %></td>
+							<td>₱<%=dish[i].price %></td>
+							<td><%=dish[i].status %></td>
+							<td style="text-align: right;" >
+								<%if(dish[i].status == "Approved"){%>
+								<button class="btn btn-warning input-btn-width borderless-button" onclick="openVerificationModal('<%= dish[i].dish_id %>')">Update Dish</button>
+								<%}%>
+								<button class="btn btn-primary input-btn-width borderless-button" onclick="location.href='/mIngredients/<%=dish[i].dish_id%>'">View Dish</button>
+							</td>
+						</td>
+						</tr>
+
+						<%};%>
+
+					</tbody>
+				</table>
+
+
+			</div>
+		</div>
+	</div>
+	</div>
+	</div>
+	<script>
+
+function openVerificationModal(dishId) {
+		const form = document.getElementById('updateDishForm');
+		form.action = `/dish_update/${dishId}`;
+
+		// Show the modal
+		$('#verificationmodal').modal('show');
+	}
+
+		$(document).ready(() => {
+			var table = $('#dishlist').DataTable({
+				columns: [{
+						data: 'Dish'
+					},
+					{
+						data: 'Price'
+					},
+					{
+						data: 'Status'
+					},
+					{
+                    data: '',
+                    orderable: false 
+                },
+            ],
+				info: false,
+				language: {
+					emptyTable: 'No data available'
+				},
+				deferRender: true,
+				dom: 'frtip',
+				lengthDish: [
+					[11],
+					[11]
+				],
+			});
+		});
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,48 @@
+body{
+    background-color: #EBEBEB;
+}
+.content{
+    padding: 25px;
+    min-height: 100vh;
+    min-height: 100vh;
+}
+.section{
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -ms-border-radius: 5px;
+    -o-border-radius: 5px;
+}
+
+.header{
+    padding: 8px 10px;
+}
+
+.input-width{
+    width: 260px;
+}
+
+.input-btn{
+    height: 56px;
+    width: 125px;
+}
+.space-between{
+    justify-content: space-between;
+}
+#myTable_filter{
+    margin-bottom: 1.2rem;
+}
+
+ td, tr{
+    border-style: none!important;
+}
+.dataTables_filter{
+    margin-right: .5rem;
+}
+
+.borderless-button {
+    border: none;
+    outline: none;
+  }
+

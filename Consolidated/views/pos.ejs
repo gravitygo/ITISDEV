@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+
+	<link rel="stylesheet" type="text/css" href="/styles.css"><!-- CSS -->
+	<!-- Add this script tag to the head or body section of your HTML file -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+	<script src="https://kit.fontawesome.com/f3347210b3.js" crossorigin="anonymous"></script><!-- JavaScript -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+	<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+
+	<title>POS</title>
+</head>
+
+<body>
+	<div class="d-flex">
+		<%- include('navbar'); -%>
+		<div class="content d-flex flex-column flex-grow-1">
+			<div class="section header mb-4">
+				<h1><i class="fa-solid fa-receipt me-2"></i>POS</h1>
+			</div>
+			<div class="d-flex space-between flex-grow-1">
+				<div class="section d-flex flex-column flex-grow-1 me-2 w-50">
+					<div class="header">
+						<h3>Menu</h3>
+					</div>
+					<div class="d-grid">
+						<% Object.keys(result.menuIngredients.jsonData).forEach((index) => {
+							const item = result.menuIngredients.jsonData[index];
+						%>
+						<div class="pos-item d-flex flex-column flex-grow-1 align-items-center m-2 justify-content-center p-3">
+							<p class="d-none dish-id"><%= index %></p>
+							<p class="m-0"><%= item.dishName %></p>
+							<p class="m-0"><%= item.price %></p>
+						</div>
+						<% }); %>
+					</div>
+				</div>
+				<div class="section d-flex flex-column flex-grow-1">
+					<div class="header">
+						<h3 id="orderNumber">Orders</h3>
+						<form id="order-details" action="/microservices/pos-order-miss" method="post">
+							<ul class="order-item">
+							</ul>
+							<button class="btn btn-success">Check out</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-insufficient" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+			  <div class="modal-content">
+				<div class="modal-header">
+				  <h5 class="modal-title">Insufficient Ingredient</h5>
+				  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body"></div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		<script>
+			var ingredientUnitsAmount = JSON.parse('<%- JSON.stringify(result.ingredientUnitsAmount.jsonData)%>');
+			var menuIngredients = JSON.parse('<%- JSON.stringify(result.menuIngredients.jsonData)%>');
+			const missOpportunity = {};
+			const orders = {};
+
+			function isAvailable(dishID){
+				const ingredients = menuIngredients[dishID].ingredients;
+				var available = true;
+				Object.keys(ingredients).forEach((index)=>{
+					const unit = ingredients[index].unit;
+					var amount = ingredients[index].amount*ingredientUnitsAmount[index].units[unit];
+					amount -= ingredientUnitsAmount[index].ingredientAmount;
+					if(amount>0){
+						if((missOpportunity[index]) == undefined) missOpportunity[index] = {};
+						if(isNaN(missOpportunity[index][unit])) missOpportunity[index][unit] = 0;
+						missOpportunity[index][unit] += amount/ingredientUnitsAmount[index].units[unit];
+						available = false;
+					}
+				});
+				return available;
+			}
+			function addOrder(dishID){
+				const theDish = $(".dish-" + dishID);
+				if(isAvailable(dishID)){
+					var value = parseInt(theDish.children(".amount").html());
+					value = isNaN(value) ? 0 : value;
+					const ingredients = menuIngredients[dishID].ingredients;
+					Object.keys(ingredients).forEach((index)=>{
+						const unit = ingredients[index].unit;
+						var amount = ingredients[index].amount*ingredientUnitsAmount[index].units[unit];
+						ingredientUnitsAmount[index].ingredientAmount -= amount;
+					});
+					if (theDish.length === 0) {
+						const menu = menuIngredients[dishID];
+						const order = $("<li>", { class: "dish-" + dishID + " d-flex align-items-center" });
+						const dish = $("<p>", { class: "flex-grow-1 mb-0 me-auto", html: menu.dishName });
+						const add = $("<div>", { class: "btn btn-outline-success", html: "+", onclick: "addOrder("+dishID+")" });
+						const remove = $("<div>", { class: "btn btn-outline-danger", html: "-", onclick: "reduceOrder("+dishID+")" });
+						const amount = $("<div>", { class: "amount text-center input-width", html: "1" });
+						order.append(dish, remove, amount, add);
+						$(".order-item").append(order);
+					}else{
+						theDish.children(".amount").html(value + 1);
+					}
+					orders[dishID] = value + 1;
+				}else{
+					$(".modal-body").html("The ingredients for " + menuIngredients[dishID].dishName + " are insufficient");
+					$("#modal").modal('show')
+				}
+			}
+
+			function reduceOrder(dishID){
+				const theDish = $(".dish-" + dishID);
+				const value = parseInt(theDish.children(".amount").html());
+				const ingredients = menuIngredients[dishID].ingredients;
+				Object.keys(ingredients).forEach((index)=>{
+					const unit = ingredients[index].unit;
+					var amount = ingredients[index].amount*ingredientUnitsAmount[index].units[unit];
+					ingredientUnitsAmount[index].ingredientAmount += amount;
+				});
+				theDish.children(".amount").html(value - 1);
+				orders[dishID] = value - 1;
+				if(value==1){
+					$(".dish-" + dishID).remove();
+					delete orders[dishID];
+				}
+			}
+
+			$(document).ready(function() {
+				$(".pos-item").click(function() {
+					const dishID = $(this).children(".dish-id").html();
+					addOrder(dishID)
+				});
+			});
+
+
+			$('#order-details').submit(function(event) {
+				event.preventDefault();
+
+				var continuation = Object.keys(orders).length > 0;
+
+
+				// Convert the data to JSON (you can use other formats if needed)
+				const orderData = encodeURIComponent(JSON.stringify(orders));
+				const missOpportunityData = encodeURIComponent(JSON.stringify(missOpportunity));
+				// Append the JSON data to a hidden input field in the form
+
+				// Proceed with form submission
+				if(continuation) {
+					$('#order-details').append('<input type="hidden" name="orderData" value="' + orderData + '">');
+					$('#order-details').append('<input type="hidden" name="missOpportunityData" value="' + missOpportunityData + '">');
+					alert("Order Complete");
+					this.submit();
+				}else{
+					alert("No Order");
+				}
+			});
+		</script>
+</body>
+
+</html>

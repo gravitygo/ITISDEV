@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<title>Edit User</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+
+	<link rel="stylesheet" type="text/css" href="/styles.css"><!-- CSS -->
+	<!-- Add this script tag to the head or body section of your HTML file -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+	<script src="https://kit.fontawesome.com/f3347210b3.js" crossorigin="anonymous"></script><!-- JavaScript -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+	<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+
+</head>
+
+<body>
+	<div class="d-flex usercreate">
+		<%- include('navbar'); -%>
+		<div class="content d-flex flex-column flex-grow-1">
+			<div class="section header mb-4">
+				<h1><i class="fa-regular fa-pen-to-square me-2"></i>Edit User</h1>
+			</div>
+			<form action="/edit-user" method="post" class="flex-grow-1 d-flex flex-column" onsubmit="return validateForm()">
+				<div class="section header d-flex  mb-4 flex-column flex-grow-1">
+					<div class="form-floating mb-2">
+						<%var firstname = ""%>
+						<%if (typeof fnameEdit != 'undefined') {firstname=fnameEdit} else{firstname = rows[0].fname}%>
+						<input type="text" class="form-control" id="firstName" name="firstName" value="<%=firstname%>" required>
+						<label for="firstName" class="form-label">First Name:</label>
+					</div>
+					<div class="form-floating mb-2">
+						<%var lastname = ""%>
+						<%if (typeof lnameEdit != 'undefined') {lastname=lnameEdit} else{lastname = rows[0].lname}%>
+						<input type="text" class="form-control" id="lastName" name="lastName" value="<%=lastname%>" required>
+						<label for="lastName" class="form-label">Last Name:</label>
+					</div>
+					<div class="form-floating mb-2">
+						<%var editrole ="";%>
+						<%if (typeof roleEdit != 'undefined'){roleEdit=roleEdit} else{editrole=rows[0].role}%>
+						<select class="form-select" id="role" name="role" required>
+							<option value="chef" <%if (editrole.toLowerCase() == "chef"){%> selected <%}%>>Chef</option>
+                            <option value="cashier" <%if (editrole.toLowerCase() == "cashier"){%> selected <%}%>>Cashier</option>
+                            <option value="stock controller" <%if (editrole.toLowerCase() == "stock controller"){%> selected <%}%>>Stock Controller</option>
+                            <option value="admin" <%if (editrole.toLowerCase() == "admin"){%> selected <%}%>>Admin</option>
+                        </select>
+                        <label for="role" class="form-label">Role:</label>
+                    </div>
+                    <div class="form-floating mb-2">
+                        <%var uzername = "";%> <%if (typeof unameEdit != 'undefined') {uzername=unameEdit} else{uzername = rows[0].username}%> <input type="text" class="form-control" id="username" name="username" value="<%=uzername%>" required>
+								<input type="hidden" class="form-control" id="currentUser" name="currentUser" value="<%=currentUserEdit%>" required>
+								<label for="username" class="form-label">Username:</label>
+					</div>
+					<div class="form-floating mb-2">
+						<input type="password" class="form-control" id="password" name="password">
+						<label for="password" class="form-label">Password</label>
+					</div>
+					<div class="form-floating mb-2">
+						<input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
+						<label for="confirmPassword" class="form-label">Confirm Password</label>
+						<div id="passwordMatchError" style="color: red; margin-top: 5px; display: none;">
+							Passwords do not match.
+						</div>
+						<% if (message) { %>
+						<div class="alert alert-danger" role="alert">
+							<%= message %>
+						</div>
+						<% } %>
+					</div>
+				</div>
+				<div class="section header d-flex space-between">
+					<a href="/userlist" class="btn btn-danger input-btn d-flex align-items-center justify-content-center">Cancel</a>
+					<button type="submit" class="btn btn-primary input-btn">Edit User</button>
+				</div>
+			</form>
+
+		</div>
+	</div>
+
+
+
+	<script>
+		function validateForm() {
+			var password = document.getElementById("password").value;
+			var confirmPassword = document.getElementById("confirmPassword").value;
+			if (password !== confirmPassword) {
+				document.getElementById("passwordMatchError").style.display = "block";
+				return false; // Prevent form submission
+			}
+			return true; // Allow form submission
+		}
+	</script>
+</body>
+
+</html>

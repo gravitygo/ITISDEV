@@ -1,0 +1,155 @@
+<style>
+	.sidebar {
+		padding: 58px 0 0;
+		width: 220px;
+		z-index: 600;
+		background-color: #0062FF;
+	}
+
+	.logo {
+		position: absolute;
+		left: 30px;
+		top: 30px
+	}
+</style>
+<div class="d-flex flex-column flex-shrink-0 p-3 sidebar" style="width: 330px;">
+	<ul class="nav nav-pills flex-column mb-auto">
+		<li>
+			<a href="/" class="d-flex align-items-center mb-3 link-dark text-decoration-none">
+				<h3 class="text-white">
+					<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-brightness-alt-low-fill" viewBox="0 0 16 16">
+						<path d="M8.5 5.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm5 6a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zM2 11a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0zm10.243-3.536a.5.5 0 1 1-.707-.707.5.5 0 0 1 .707.707zm-8.486-.707a.5.5 0 1 0 .707.707.5.5 0 0 0-.707-.707zM8 7a4 4 0 0 0-4 4 .5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5 4 4 0 0 0-4-4z" />
+					</svg>DINER
+				</h3>
+			</a>
+		</li>
+		<%if(userrole.toLowerCase() == "admin" || userrole.toLowerCase() == "stock controller"){%>
+		<li class="nav-item">
+			<a href="/dashboard" class="nav-link text-white  logo-link">
+				<span class="icon"><i class="fa-solid fa-house"></i></span>
+				<span class="ms-1">Dashboard</span>
+			</a>
+		</li>
+		<%}%>
+    	<%if(userrole.toLowerCase() == "admin" || userrole.toLowerCase() == "cashier"){%>
+		<li>
+			<a href="/POS" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-money-bill"></i></span>
+				<span class="ms-1">POS</span>
+			</a>
+		</li>
+		<%}%>
+      	<%if(userrole.toLowerCase() == "admin" ){%>
+		<li>
+			<a href="/userlist" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-users"></i></span>
+				<span class="ms-1">Manage Users</span>
+			</a>
+		</li>
+		<%}%>
+      	<%if(userrole.toLowerCase() == "admin" || userrole.toLowerCase() == "chef" || userrole.toLowerCase() == "stock controller"){%>
+		<li>
+			<a href="/unit" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-scale-balanced me-2"></i></span>
+				<span class="ms-1">Manage Units</span>
+			</a>
+		</li>
+		<%}%>
+		<%if(userrole.toLowerCase() == "admin" || userrole.toLowerCase() == "chef"  || userrole.toLowerCase() == "stock controller"){%>
+		<li>
+			<a href="/ingredients" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-regular fa-lemon"></i></span>
+				<span class="ms-1">Manage Ingredients</span>
+			</a>
+		</li>
+		<%}%>
+      	<%if(userrole.toLowerCase() == "admin" || userrole.toLowerCase() == "chef" ){%>
+		<li>
+			<a href="/dish" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-shrimp"></i></span>
+				<span class="ms-1">Manage Dishes</span>
+			</a>
+		</li>
+		<%}%>
+    	<%if(userrole.toLowerCase() == "admin" || userrole.toLowerCase() == "stock controller"){%>
+		<li>
+			<a href="/restock" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-arrows-spin"></i></span>
+				<span class="ms-1">Restock Ingredients</span>
+			</a>
+		</li>
+		<%}%>
+    	<%if(userrole.toLowerCase() == "admin" || userrole.toLowerCase() == "stock controller"){%>
+		<li>
+			<a href="/discard" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-trash-can"></i></span>
+				<span class="ms-1">Discard Ingredients</span>
+			</a>
+		</li>
+		<%}%>
+		<%if(userrole.toLowerCase() == "admin" || userrole.toLowerCase() == "chef"){%>
+		<li>
+			<a href="/orders" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-receipt"></i></span>
+				<span class="ms-1">View Orders Report</span>
+			</a>
+		</li>
+		<%}%>
+		<%if(userrole.toLowerCase() == "admin"){%>
+		<li>
+			<a href="/inventory-transactions" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-cart-flatbed"></i></span>
+				<span class="ms-1">View Inventory Report</span>
+			</a>
+		</li>
+		<%}%>
+		<%if(userrole.toLowerCase() == "admin"){%>
+		<li>
+			<a href="/missed-opportunity" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-fire"></i></span>
+				<span class="ms-1">View Missed Opportunity Report</span>
+			</a>
+		</li>
+		<%}%>
+		<%if(userrole.toLowerCase() == "admin"){%>
+		<li>
+			<a href="/discrepancy-report" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-not-equal"></i></span>
+				<span class="ms-1">View Discrepancy Report</span>
+			</a>
+		</li>
+		<%}%>
+		<%if(userrole.toLowerCase() == "admin"){%>
+		<li>
+			<a href="/inventory" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-solid fa-warehouse"></i></span>
+				<span class="ms-1">View Inventory</span>
+			</a>
+		</li>
+		<%}%>
+		<%if(userrole.toLowerCase() == "admin"){%>
+		<li>
+			<a href="/inventory-check" class="nav-link text-white logo-link">
+				<span class="icon"><i class="fa-regular fa-hand-point-up"></i></span>
+				<span class="ms-1">Count Physical Inventory</span>
+			</a>
+		</li>
+		<%}%>
+    </ul>
+    <div class="row">
+      <div class="col">
+        <strong class="text-white"><%=username%></strong>
+		<p class="text-white"><%=userrole%></p>
+</div>
+<div class="col-auto">
+	<a href="/login">
+		<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="white" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+			<path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+			<path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+		</svg>
+	</a>
+</div>
+</div>
+
+
+</div>

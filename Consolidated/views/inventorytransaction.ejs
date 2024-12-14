@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+
+	<link rel="stylesheet" type="text/css" href="/styles.css"><!-- CSS -->
+	<!-- Add this script tag to the head or body section of your HTML file -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+	<script src="https://kit.fontawesome.com/f3347210b3.js" crossorigin="anonymous"></script><!-- JavaScript -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+	<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+	<title>Inventory Transaction</title>
+</head>
+
+<body>
+	<div class="d-flex">
+		<%- include('navbar'); -%>
+		<div class="content d-flex flex-column flex-grow-1">
+			<div class="section header mb-4">
+				<h1><i class="fa-solid fa-cart-flatbed"></i> Inventory Transaction</h1>
+			</div>
+			<div class="d-flex space-between flex-grow-1">
+				<div class="section d-flex flex-column flex-grow-1">
+					<div class="header">
+						<h3>Inventory Transaction Report</h3>
+					</div>
+					<div class="d-flex header">
+						<div class="form-floating">
+							<select class="form-control input-width me-2" id="filter-dropdown" onchange="select()">
+								<option value="all">All</option>
+								<option value="daily">Daily</option>
+								<option value="monthly">Monthly</option>
+								<option value="yearly">Yearly</option>
+								<option value="custom">Custom</option>
+							</select>
+							<label for="amount">Frequency</label>
+						</div>
+						<div class="daily d-none">
+							<div class="form-floating">
+								<input type="date" name="daily" class="form-control input-width me-2" id="daily">
+								<label for="amount">Date</label>
+							</div>
+						</div>
+						<div class="monthly d-none">
+							<div class="form-floating">
+								<input type="month" name="daily" class="form-control input-width me-2" id="monthly">
+								<label for="amount">Month</label>
+							</div>
+						</div>
+						<div class="yearly d-none">
+							<div class="form-floating">
+								<input type="number" name="daily" class="form-control input-width me-2" placeholder="YYYY" id="yearly">
+								<label for="amount">Year</label>
+							</div>
+						</div>
+						<div class="custom d-flex d-none">
+							<div class="form-floating">
+								<input type="date" name="startDate" onchange="updateEndDate()" class="form-control input-width me-2" id="minDate">
+								<label for="amount">Start Date</label>
+							</div>
+							<div class="form-floating">
+								<input type="date" name="endDate" onchange="updateStartDate()" class="form-control input-width" id="maxDate">
+								<label for="amount">End Date</label>
+							</div>
+						</div>
+					</div>
+					<div class="d-flex flex-column flex-grow-1 table-container">
+						<table id="myTable" class="table table-striped">
+							<thead>
+								<tr>
+									<th scope="col">Ingredient</th>
+									<th scope="col">Amount</th>
+									<th scope="col">Unit</th>
+									<th scope="col">User</th>
+                                    <th scope="col">Transaction Type</th>
+									<th scope="col">Date</th>
+								</tr>
+							</thead>
+							<tbody>
+								<% result.forEach((item) => { %>
+								<tr class="<%= item.ingredient_id %>">
+									<% Object.keys(item).forEach((key) => { %>
+									<td>
+										<%= item[key] %>
+									</td>
+									<% }) %>
+								</tr>
+								<% }) %>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+	<script>
+		function updateEndDate() {
+			const minDate = document.getElementById('minDate').value;
+			const maxDate = document.getElementById('maxDate');
+			if (minDate != '' && minDate > maxDate.value)
+				maxDate.value = null;
+			maxDate.setAttribute("min", minDate)
+		}
+
+		function updateStartDate() {
+			const minDate = document.getElementById('minDate');
+			const maxDate = document.getElementById('maxDate').value;
+			if (maxDate != '' && maxDate < minDate.value)
+				minDate.value = null;
+			minDate.setAttribute("max", maxDate)
+		}
+
+		$(document).ready(function() {
+			$.fn.dataTable.ext.search.push(
+				function(settings, data, dataIndex) {
+					var filterType = $('#filter-dropdown').val();
+
+					var date = moment(data[5], 'YYYY-MM-DD');
+					if(filterType === 'all')
+						return true;
+					if (filterType === 'daily') {
+						var inputDate = $('#daily').val();
+						if (inputDate==null) {
+							return true; // If no input date, do not filter
+						}
+						var selectedDate = moment(inputDate, 'YYYY-MM-DD');
+						if (!selectedDate.isValid() || date.isSame(selectedDate, 'day')) {
+							return true;
+						}
+					} else if (filterType === 'monthly') {
+						var inputDate = $('#monthly').val();
+						if (inputDate==null) {
+							return true; // If no input date, do not filter
+						}
+						var selectedMonthYear = moment(inputDate, 'YYYY-MM');
+						if (!selectedMonthYear.isValid() || date.isSame(selectedMonthYear, 'month')) {
+							return true;
+						}
+					} else if (filterType === 'yearly') {
+						var inputDate = $('#yearly').val();
+						if (inputDate==null) {
+							return true; // If no input date, do not filter
+						}
+						var selectedYear = parseInt(inputDate, 10);
+						if (!Number.isInteger(selectedYear) || date.year() === selectedYear) {
+							return true;
+						}
+					} else if (filterType === 'custom') {
+						var min = moment($('#minDate').val());
+						var max = moment($('#maxDate').val());
+						var date = moment(data[5], 'YYYY-MM-DD');
+
+						if (
+							(min.isSameOrBefore(date) || !min.isValid()) &&
+							(max.isSameOrAfter(date) || !max.isValid())
+						) {
+							return true;
+					}
+					}
+
+					return false; // If the date does not match the selected filter, exclude the row
+				}
+			);
+
+			var table = $('#myTable').DataTable({
+				columns: [{
+						data: 'Ingredient'
+					},
+					{
+						data: 'Amount'
+					},
+					{
+						data: 'Unit'
+					},
+					{
+						data: 'User'
+					},
+					{
+						data: 'Transaction Type'
+					},
+					{
+						data: 'Date',
+						render: function(data, type, row) {
+							if (type === 'display' || type === 'filter') {
+								return moment(data).format('YYYY-MM-DD');
+							}
+							return data;
+						}
+					},
+				],
+				columnDefs: [{
+					"className": "text-center",
+					"targets": 5
+				}
+                ,{
+					"className": "text-end",
+					"targets": 1
+				}],
+				info: false,
+				language: {
+					emptyTable: 'No data available'
+				},
+				deferRender: true,
+				dom: 'frtip',
+				lengthMenu: [
+					[11],
+					[11]
+				],
+				drawCallback: function(settings) {
+					var api = this.api();
+					var info = api.page.info();
+					var totalPages = info.pages;
+					var currentPage = info.page;
+					if (currentPage === totalPages - 1) {
+						var rowCount = api.rows({ search: 'applied' }).data().length;
+						var rows = api.rows({ search: 'applied' }).nodes();
+						var lastRow = rows[rowCount - 1];
+						$(lastRow).after(
+							'<tr class="end-of-report"><td colspan="6" class="text-center text-danger">End of Report</td></tr>'
+						);
+					} else {
+						$('.end-of-report').remove();
+					}
+				},
+			});
+			$('#filter-dropdown').on('change', function() {
+				table.draw();
+			});
+
+			$('#minDate, #maxDate, #daily, #monthly, #yearly').on('change', function() {
+				table.draw();
+			});
+			// Sorting the data after the table is loaded
+			table.order([
+				[5, 'desc']
+			]).draw();
+			$('#minDate, #maxDate').on('change', function() {
+				table.draw();
+			});
+
+			$($.fn.dataTable.tables(true)).css('width', '100%');
+			$($.fn.dataTable.tables(true)).DataTable().columns.adjust().draw();
+		});
+	</script>
+	<script src="index.js"></script>
+</body>
+
+</html>
